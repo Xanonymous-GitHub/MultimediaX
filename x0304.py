@@ -50,7 +50,7 @@ def draw():
 
 
 def main():
-    img = cv2.imread('img/important.jpg')
+    img = cv2.imread('img/important2.jpg')
     name = 'da JJ'
     cv2.imshow(name, img)
     cv2.waitKey(0)
