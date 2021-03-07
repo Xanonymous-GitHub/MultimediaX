@@ -49,8 +49,8 @@ def draw():
     return p
 
 
-def main():
-    img = cv2.imread('img/important2.jpg')
+def run():
+    img = cv2.imread('assets/img/important2.jpg')
     name = 'da JJ'
     cv2.imshow(name, img)
     cv2.waitKey(0)
@@ -69,7 +69,3 @@ def main():
     cv2.imshow('p', draw())
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    main()
