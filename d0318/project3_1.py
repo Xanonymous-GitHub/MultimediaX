@@ -52,5 +52,5 @@ def split_and_calculate_coins():
     cv2.destroyAllWindows()
 
 
-def run():
+def run_1():
     split_and_calculate_coins()
