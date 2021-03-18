@@ -1,6 +1,7 @@
 # X opencv
 
 ### Rules:
+- DO NOT LEAVE ANY COMMIT MESSAGE!!! use `git commit --allow-empty-message` instead. (just for fun XD)
 - Please package the code you wrote each time into a separate python package according to the date.
 - Each package must be named after "d" + date(MMDD).
 - Each package must have an only top-level entry point function named "run".
