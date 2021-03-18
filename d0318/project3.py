@@ -14,44 +14,41 @@ def clear_dirty(img, iters):
 
 def split_and_calculate_coins():
     print('project3-1: split coins')
-    coin = cv2.imread('d0318/assets/coin.jpg')
 
-    coin = cv2.cvtColor(coin, cv2.COLOR_BGR2GRAY)
-    # coin = cv2.erode(coin, np.ones((3, 3)), iterations=1)
-    # for _ in range(10):
-    #     coin = cv2.medianBlur(coin, 3)
+    coin = cv2.resize(cv2.imread('d0318/assets/coin.jpg'), (1000, 563))
 
-    # ret, binary = cv2.threshold(coin, 65, 255, cv2.THRESH_BINARY)
-    # cv2.imshow('coin', binary)
-    # cv2.waitKey(0)
+    coin_gray = cv2.cvtColor(coin, cv2.COLOR_BGR2GRAY)
 
-    # binary -= cv2.erode(binary, np.ones((3, 3)), iterations=2)
-    # coin = clear_dirty(binary, 3)
+    ret, binary = cv2.threshold(coin_gray, 90, 255, cv2.THRESH_BINARY)
 
-    # cv2.imshow('clear', binary)
-    # cv2.waitKey(0)
+    binary = cv2.medianBlur(binary, 1)
+    binary = cv2.GaussianBlur(binary, (1, 1), 0)
+    binary = cv2.erode(binary, np.ones((2, 2)), iterations=2)
 
-    # num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary, connectivity=4, ltype=cv2.CV_32S)
-    circles = cv2.HoughCircles(coin, cv2.HOUGH_GRADIENT, dp=1, minDist=400, param1=50, param2=30, minRadius=150, maxRadius=200)
-    print(circles)
-    print(len(circles[0]))
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary, connectivity=8, ltype=None)
 
-    # draw on new img
-    blank = base_d_img(coin)
-    for circle in circles[0]:
-        x, y, r = circle
-        cv2.rectangle(coin, (x-r, y-r), (x+r, y+r), (255, 255, 0), 5)
+    red = (0, 0, 255)
+    orange = (0, 97, 255)
+    yellow = (0, 255, 255)
+    green = (0, 255, 0)
 
-    # coin[:, :, 0] += blank[:, :, 0]
-    # coin[:, :, 1] += blank[:, :, 1]
-    # coin[:, :, 2] += blank[:, :, 2]
-    cv2.imshow('owob', coin)
+    for stat in stats:
+        if (50 < stat[2] < 150) and (50 < stat[3] < 150):
+            avg_len = (stat[2] + stat[3]) * 0.5
+
+            if avg_len < 100:
+                color = red
+            elif avg_len < 110:
+                color = orange
+            elif avg_len < 124:
+                color = yellow
+            else:
+                color = green
+
+            cv2.rectangle(coin, (stat[0], stat[1]), (stat[0] + stat[2], stat[1] + stat[3]), color, 2)
+
+    cv2.imshow('coin', coin)
     cv2.waitKey(0)
-
-    # print('num_labels =', num_labels)
-    # print('stats =', stats)
-    # print('centroids =', centroids)
-    # print('labels = ', labels)
 
     cv2.destroyAllWindows()
 
