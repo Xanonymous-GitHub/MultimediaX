@@ -2,7 +2,23 @@ import cv2
 import numpy as np
 
 
-def split_and_calculate_coins():
+def get_coin_color(avg_len):
+    red = (0, 0, 255)
+    orange = (0, 97, 255)
+    yellow = (0, 255, 255)
+    green = (0, 255, 0)
+
+    if avg_len < 100:
+        return red, 1
+    elif avg_len < 110:
+        return orange, 5
+    elif avg_len < 124:
+        return yellow, 10
+    else:
+        return green, 50
+
+
+def run_1():
     print('project3-1')
 
     # import and resize image
@@ -22,41 +38,20 @@ def split_and_calculate_coins():
     # get stats from connected components
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(binary, connectivity=8, ltype=None)
 
-    # set color tuple
-    red = (0, 0, 255)
-    orange = (0, 97, 255)
-    yellow = (0, 255, 255)
-    green = (0, 255, 0)
-
-    money = 0
+    # draw rectangle around coins and calculate total money
+    total = 0
     for stat in stats:
         x, y, width, height, area = stat
         avg_len = (width + height) * 0.5
 
         # process connected component with certain length
         if 50 < avg_len < 150:
-            # set border color according to length
-            if avg_len < 100:
-                color = red
-                money += 1
-            elif avg_len < 110:
-                color = orange
-                money += 5
-            elif avg_len < 124:
-                color = yellow
-                money += 10
-            else:
-                color = green
-                money += 50
-            # draw rectangle around coin
+            color, money = get_coin_color(avg_len)
+            total += money
             cv2.rectangle(coin, (x, y), (x + width, y + height), color, 2)
-    print('錢幣總額 =', money)
 
+    print('錢幣總額 =', total)
     cv2.imshow('coin', coin)
     cv2.waitKey(0)
 
     cv2.destroyAllWindows()
-
-
-def run_1():
-    split_and_calculate_coins()
