@@ -9,10 +9,10 @@ def split_and_calculate_coins():
     coin = cv2.resize(cv2.imread('d0318/assets/coin.jpg'), (1000, 563))
 
     # convert image to grayscale
-    coin_gray = cv2.cvtColor(coin, cv2.COLOR_BGR2GRAY)
+    coin_grey = cv2.cvtColor(coin, cv2.COLOR_BGR2GRAY)
 
     # threshold image
-    ret, binary = cv2.threshold(coin_gray, 90, 255, cv2.THRESH_BINARY)
+    ret, binary = cv2.threshold(coin_grey, 90, 255, cv2.THRESH_BINARY)
 
     # remove black area inside coins
     binary = cv2.medianBlur(binary, 1)
