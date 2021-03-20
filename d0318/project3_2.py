@@ -26,7 +26,7 @@ def draw_lines(img, lines):
 
 def run_2():
     print('project3-2')
-    floor = cv2.resize(cv2.imread('d0318/assets/floor.jpg'), (562, 1000))
+    floor = cv2.resize(cv2.imread('d0318/assets/floor.jpg'), (563, 1000))
     floor_grey = cv2.cvtColor(floor, cv2.COLOR_BGR2GRAY)
     cv2.imshow('floor', floor_grey)
     cv2.waitKey(0)
