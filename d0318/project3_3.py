@@ -59,18 +59,22 @@ def run_3():
 
         # process connected component with certain length
         if 50 < avg_len < 150:
-            # set border color according to length
+            # get color and add money to total
             color, money = get_coin_color(avg_len)
             total += money
             # draw rectangle around coin
             cv2.rectangle(coin, (x, y), (x + width, y + height), color, 2)
 
         if (375 < width < 475 and 150 < height < 250) or (375 < height < 475 and 175 < width < 250):
+            # get average rgb color in cash
             rgb = [round(np.average(coin[y: y + height, x: x + width, k])) for k in range(3)]
+            # get color and add money to total
             color, money = get_cash_color(rgb)
             total += money
+            # draw rectangle around cash
             cv2.rectangle(coin, (x, y), (x + width, y + height), color, 5)
 
+    # output total money and show result image
     print('錢幣總額 =', total)
     cv2.imshow('coin', coin)
     cv2.waitKey(0)

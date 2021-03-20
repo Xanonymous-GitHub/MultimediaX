@@ -41,15 +41,17 @@ def run_1():
     # draw rectangle around coins and calculate total money
     total = 0
     for stat in stats:
+        # format stat data
         x, y, width, height, area = stat
         avg_len = (width + height) * 0.5
-
-        # process connected component with certain length
         if 50 < avg_len < 150:
+            # get color and add money to total
             color, money = get_coin_color(avg_len)
             total += money
+            # draw rectangle around coin
             cv2.rectangle(coin, (x, y), (x + width, y + height), color, 2)
 
+    # output total money and show result image
     print('錢幣總額 =', total)
     cv2.imshow('coin', coin)
     cv2.waitKey(0)
