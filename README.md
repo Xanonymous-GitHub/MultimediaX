@@ -1,4 +1,4 @@
-# X opencv
+# X Multimedia Technologies and Applications
 
 ### Rules:
 - DO NOT LEAVE ANY COMMIT MESSAGE!!! use `git commit --allow-empty-message` instead. (just for fun XD)
