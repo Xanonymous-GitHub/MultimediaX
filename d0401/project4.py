@@ -13,7 +13,7 @@ def get_clf_result(kernel_: str, x_train, x_test, y_train, y_test, c: int, gamma
     return round(clf.score(x_test, y_test), 3)
 
 
-def run_2():
+def run():
     # load data
     wine = datasets.load_wine()
 
