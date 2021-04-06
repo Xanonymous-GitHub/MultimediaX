@@ -25,7 +25,6 @@ def run_2():
     print('Accuracy')
     print(clf.score(x_train, y_train))
     print(clf.score(x_test, y_test))
-
     plt.scatter(x_train[:, 0], x_train[:, 1])
     # plt.plot([0, 1, 3, 4], [1, 3, 11, 14])
     plt.show()
