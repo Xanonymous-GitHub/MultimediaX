@@ -18,8 +18,13 @@ def run_2():
     )
 
     for c in range(1, 11):
-        print('linear', 'c=', c, get_clf_result('linear', *data, c, 'auto'))
-        print('poly', 'c=', c, get_clf_result('poly', *data, c, 'auto'))
-        print('rbf', 'c=', c, get_clf_result('rbf', *data, c, 'auto'))
-        print('sigmoid', 'c=', c, get_clf_result('sigmoid', *data, c, 'auto'))
+        print('linear', ' c=', c, 'gamma=auto', get_clf_result('linear', *data, c, 'auto'))
+        print('poly', '   c=', c, 'gamma=auto', get_clf_result('poly', *data, c, 'auto'))
+        print('rbf', '    c=', c, 'gamma=auto', get_clf_result('rbf', *data, c, 'auto'))
+        print('sigmoid', 'c=', c, 'gamma=auto', get_clf_result('sigmoid', *data, c, 'auto'))
+        print()
+        print('linear', ' c=', c, 'gamma=scale', get_clf_result('linear', *data, c, 'scale'))
+        print('poly', '   c=', c, 'gamma=scale', get_clf_result('poly', *data, c, 'scale'))
+        print('rbf', '    c=', c, 'gamma=scale', get_clf_result('rbf', *data, c, 'scale'))
+        print('sigmoid', 'c=', c, 'gamma=scale', get_clf_result('sigmoid', *data, c, 'scale'))
         print()
