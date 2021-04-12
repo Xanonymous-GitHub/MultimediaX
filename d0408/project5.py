@@ -2,6 +2,8 @@ from skimage.feature import hog
 from sklearn.datasets import fetch_lfw_people
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+import cv2
+import numpy as np
 
 
 def get_clf_result(kernel_: str, x_train, x_test, y_train, y_test, c: int, gamma_: str) -> float:
@@ -16,12 +18,34 @@ def get_clf_result(kernel_: str, x_train, x_test, y_train, y_test, c: int, gamma
 
 
 def run():
-    lfw_people = fetch_lfw_people(min_faces_per_person=200, resize=0.4)
-    image_people = lfw_people['images']
-    target_people = lfw_people['target']
+    data_amount = 487
 
-    hogged_people = []
-    for image in image_people:
+    lfw_people = fetch_lfw_people(min_faces_per_person=200, resize=0.4)
+
+    car = list()
+    for x in range(data_amount):
+        img = cv2.imread('./d0408/assets/car/%05d.jpg' % (x + 1))
+        img = cv2.resize(img, (37, 50))
+        car.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    car = np.array(car)
+
+    image_people = lfw_people['images'][:data_amount]
+    for p in range(len(image_people)):
+        image_people[p] = cv2.resize(image_people[p], (37, 50))
+
+    target_people = [0] * data_amount
+    target_car = [1] * data_amount
+    target = target_car + target_people
+
+    images = list()
+    for x in car:
+        images.append(x)
+
+    for x in image_people:
+        images.append(x)
+
+    hogged_images = []
+    for image in images:
         fd, hog_image = hog(
             image,
             orientations=8,
@@ -29,11 +53,11 @@ def run():
             cells_per_block=(1, 1),
             visualize=True,
         )
-        hogged_people.append(fd)
+        hogged_images.append(fd)
 
     # split some data to be the test data
     x_train, x_test, y_train, y_test = train_test_split(
-        hogged_people, target_people, test_size=0.2, random_state=0
+        hogged_images, target, test_size=0.2, random_state=0
     )
 
     print('Accuracy =', get_clf_result('linear', x_train, x_test, y_train, y_test, 1, 'auto'))
