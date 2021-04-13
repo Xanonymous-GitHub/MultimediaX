@@ -55,9 +55,26 @@ def run():
         )
         hogged_images.append(fd)
 
+    car_test = list()
+    for x in range(10):
+        img = cv2.imread('./d0408/assets/test_data/%05d.jpg' % (x + 1))
+        img = cv2.resize(img, (37, 50))
+        car_test[x] = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    avatar_of_professors_in_ntut_cs = list()
+    for x in range(10):
+        img = cv2.imread('./d0408/assets/test_data/%d.jpg' % (x + 1))
+        img = cv2.resize(img, (37, 50))
+        avatar_of_professors_in_ntut_cs[x] = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     # split some data to be the test data
     x_train, x_test, y_train, y_test = train_test_split(
         hogged_images, target, test_size=0.2, random_state=0
     )
 
-    print('Accuracy =', get_clf_result('linear', x_train, x_test, y_train, y_test, 1, 'auto'))
+    target_test = ([1] * 10) + ([0] * 10)
+    image_test = car_test + avatar_of_professors_in_ntut_cs
+
+    print(image_test)
+
+    print('Accuracy =', get_clf_result('linear', x_train, image_test, y_train, target_test, 1, 'auto'))
