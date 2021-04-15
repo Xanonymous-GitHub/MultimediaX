@@ -2,6 +2,7 @@ import cv2
 # import imutils
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn import svm
 from sklearn.svm import LinearSVC
 from scipy.cluster.vq import *
 
@@ -20,8 +21,9 @@ def get_images(amount: int, data_type: str):
     return image_list
 
 
-def get_clf_result(x_train, x_test, y_train, y_test) -> float:
+def get_clf_result(x_train, x_test, y_train, y_test, c: int) -> float:
     # create model
+    # clf = svm.SVC(kernel=kernel_, C=c, gamma=gamma_)
     clf = LinearSVC()
 
     # train model
@@ -54,7 +56,7 @@ def run():
     for descriptor in des_list[1:]:
         descriptors = np.vstack((descriptors, descriptor))
 
-    k_means = 1000
+    k_means = 20
     voc, variance = kmeans(descriptors, k_means, 1)
 
     im_features = np.zeros((data_size, k_means), 'float32')
@@ -66,4 +68,4 @@ def run():
     print('data_size =', data_size)
 
     result = train_test_split(im_features, ml_target, test_size=0.2, random_state=0)
-    print(get_clf_result(*result))
+    print('Accuracy =', get_clf_result(*result, 1))
