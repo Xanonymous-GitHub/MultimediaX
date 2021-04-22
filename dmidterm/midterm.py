@@ -3,6 +3,7 @@ import cv2
 from sklearn import svm
 import os
 from sklearn.model_selection import train_test_split
+from scipy.cluster.vq import *
 
 path_prefix = './dmidterm/assets/'
 
@@ -42,16 +43,41 @@ def create_target_list(amount: int, content: str) -> list:
     return [content for _ in range(amount)]
 
 
+def get_attributes_from_images(images: list):
+    sift = cv2.SIFT_create()
+    data_size = len(images)
+    des_list = []
+    for data in images:
+        kpts = sift.detect(data)
+        _, des = sift.compute(data, kpts)
+        des_list.append(des)
+
+    descriptors = des_list[0]
+    for descriptor in des_list[1:]:
+        descriptors = np.vstack((descriptors, descriptor))
+
+    k_means = 60
+    voc, variance = kmeans(descriptors, k_means, 1)
+
+    im_features = np.zeros((data_size, k_means), 'float32')
+    for i in range(data_size):
+        words, distance = vq(des_list[i], voc)
+        for word in words:
+            im_features[i][word] += 1
+
+    return im_features
+
+
 def run():
     # get data for training.
     train_paper_data = convert_to_gray(get_data('train', 'paper'))
     train_rock_data = convert_to_gray(get_data('train', 'rock'))
-    train_scissors_data = convert_to_gray(get_data('train', 'rock'))
+    train_scissors_data = convert_to_gray(get_data('train', 'scissors'))
 
     # get data for testing.
     test_paper_data = convert_to_gray(get_data('test', 'paper'))
     test_rock_data = convert_to_gray(get_data('test', 'rock'))
-    test_scissors_data = convert_to_gray(get_data('test', 'rock'))
+    test_scissors_data = convert_to_gray(get_data('test', 'scissors'))
 
     # mark targets related to datasets
     train_paper_target = create_target_list(len(train_paper_data), 'paper')
@@ -75,7 +101,7 @@ def run():
 
     # split data
     result = train_test_split(
-        np.array(train_data + test_data),
+        np.concatenate((get_attributes_from_images(train_data), get_attributes_from_images(test_data))),
         np.array(train_target + test_target),
         test_size=0.2, random_state=0
     )
