@@ -56,7 +56,7 @@ def get_attributes_from_images(images: list):
     for descriptor in des_list[1:]:
         descriptors = np.vstack((descriptors, descriptor))
 
-    k_means = 60
+    k_means = 120
     voc, variance = kmeans(descriptors, k_means, 1)
 
     im_features = np.zeros((data_size, k_means), 'float32')
