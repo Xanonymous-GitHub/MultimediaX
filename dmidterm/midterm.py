@@ -2,10 +2,13 @@ import numpy as np
 import cv2
 from sklearn import svm
 import os
+import random
+import joblib
 from sklearn.model_selection import train_test_split
 from scipy.cluster.vq import *
 
 path_prefix = './dmidterm/assets/'
+model_path = './dmidterm/model.pkl'
 
 
 def show_img(*images):
@@ -17,15 +20,15 @@ def show_img(*images):
         cv2.waitKey(0)
 
 
-def get_clf_result(kernel_: str, x_train, x_test, y_train, y_test, c: int, gamma_: str) -> float:
+def get_clf_model(kernel_: str, x_train, y_train, c: int, gamma_: str):
     # create model
     clf = svm.SVC(kernel=kernel_, C=c, gamma=gamma_)
 
     # train model
     clf.fit(x_train, y_train)
 
-    # get the rate of score
-    return round(clf.score(x_test, y_test), 3)
+    # get the trained model
+    return clf
 
 
 def get_data(from_: str, hand_type: str) -> list:
@@ -33,6 +36,13 @@ def get_data(from_: str, hand_type: str) -> list:
     whole_path = path_prefix + from_ + '/' + hand_type + '/'
     names = [f for f in os.listdir(whole_path)]
     return [cv2.imread(whole_path + name) for name in names]
+
+
+def get_single_validation_img(hand_type: str):
+    whole_path = path_prefix + 'validation/'
+    names = list(filter(lambda x: hand_type in x, [f for f in os.listdir(whole_path)]))
+    c = random.choice([cv2.imread(whole_path + name) for name in names])
+    return convert_to_gray([c])[0]
 
 
 def convert_to_gray(images: list) -> list:
@@ -68,43 +78,73 @@ def get_attributes_from_images(images: list):
     return im_features
 
 
+def start_validation(model):
+    while True:
+        try:
+            chosen_hand_type = input('please tell me what is your hand (paper|rock|scissors)?')
+        except EOFError:
+            break
+        if chosen_hand_type not in ['paper', 'rock', 'scissors']:
+            print('please provide a correct hand type!\n')
+            continue
+
+        random_hand_img = get_single_validation_img(chosen_hand_type)
+        img_data = get_attributes_from_images([random_hand_img])[0]
+        expected_target = model.predict(img_data)
+        print('The expected result is: ' + expected_target)
+
+
 def run():
-    # get data for training.
-    train_paper_data = convert_to_gray(get_data('train', 'paper'))
-    train_rock_data = convert_to_gray(get_data('train', 'rock'))
-    train_scissors_data = convert_to_gray(get_data('train', 'scissors'))
+    # detect if model trained.
+    try:
+        model = joblib.load(model_path)
+    except FileNotFoundError:
+        model = None
 
-    # get data for testing.
-    test_paper_data = convert_to_gray(get_data('test', 'paper'))
-    test_rock_data = convert_to_gray(get_data('test', 'rock'))
-    test_scissors_data = convert_to_gray(get_data('test', 'scissors'))
+    if model is None:
+        # get data for training.
+        train_paper_data = convert_to_gray(get_data('train', 'paper'))
+        train_rock_data = convert_to_gray(get_data('train', 'rock'))
+        train_scissors_data = convert_to_gray(get_data('train', 'scissors'))
 
-    # mark targets related to datasets
-    train_paper_target = create_target_list(len(train_paper_data), 'paper')
-    train_rock_target = create_target_list(len(train_rock_data), 'rock')
-    train_scissors_target = create_target_list(len(train_scissors_data), 'scissors')
-    test_paper_target = create_target_list(len(test_paper_data), 'paper')
-    test_rock_target = create_target_list(len(test_rock_data), 'rock')
-    test_scissors_target = create_target_list(len(test_scissors_data), 'scissors')
+        # get data for testing.
+        test_paper_data = convert_to_gray(get_data('test', 'paper'))
+        test_rock_data = convert_to_gray(get_data('test', 'rock'))
+        test_scissors_data = convert_to_gray(get_data('test', 'scissors'))
 
-    # combine train data
-    train_data = train_paper_data + train_rock_data + train_scissors_data
+        # mark targets related to datasets
+        train_paper_target = create_target_list(len(train_paper_data), 'paper')
+        train_rock_target = create_target_list(len(train_rock_data), 'rock')
+        train_scissors_target = create_target_list(len(train_scissors_data), 'scissors')
+        test_paper_target = create_target_list(len(test_paper_data), 'paper')
+        test_rock_target = create_target_list(len(test_rock_data), 'rock')
+        test_scissors_target = create_target_list(len(test_scissors_data), 'scissors')
 
-    # combine train target
-    train_target = train_paper_target + train_rock_target + train_scissors_target
+        # combine train data
+        train_data_origin = train_paper_data + train_rock_data + train_scissors_data
 
-    # combine test data
-    test_data = test_paper_data + test_rock_data + test_scissors_data
+        # combine train target
+        train_target_origin = train_paper_target + train_rock_target + train_scissors_target
 
-    # combine test target
-    test_target = test_paper_target + test_rock_target + test_scissors_target
+        # combine test data
+        test_data_origin = test_paper_data + test_rock_data + test_scissors_data
 
-    # split data
-    result = train_test_split(
-        np.concatenate((get_attributes_from_images(train_data), get_attributes_from_images(test_data))),
-        np.array(train_target + test_target),
-        test_size=0.2, random_state=0
-    )
+        # combine test target
+        test_target_origin = test_paper_target + test_rock_target + test_scissors_target
 
-    # train
-    print(get_clf_result('linear', *result, 1, 'auto'))
+        # SIFT
+        train_data = get_attributes_from_images(train_data_origin)
+        test_data = get_attributes_from_images(test_data_origin)
+
+        # split data
+        # result = train_test_split(
+        #     np.concatenate((train_data, test_data)),
+        #     np.array(train_target_origin + test_target_origin),
+        #     test_size=0.2, random_state=0
+        # )
+
+        # get trained model
+        model = get_clf_model('linear', train_data, train_target_origin, 1, 'auto')
+        joblib.dump(model, model_path)
+
+    start_validation(model)
