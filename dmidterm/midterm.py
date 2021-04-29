@@ -66,7 +66,7 @@ def get_attributes_from_images(images: list):
     for descriptor in des_list[1:]:
         descriptors = np.vstack((descriptors, descriptor))
 
-    k_means = 120
+    k_means = 20
     voc, variance = kmeans(descriptors, k_means, 1)
 
     im_features = np.zeros((data_size, k_means), 'float32')
@@ -90,8 +90,9 @@ def start_validation(model):
 
         random_hand_img = get_single_validation_img(chosen_hand_type)
         img_data = get_attributes_from_images([random_hand_img])[0]
-        expected_target = model.predict(img_data)
-        print('The expected result is: ' + expected_target)
+        expected_target = model.predict([img_data])
+        print('The expected result is: ' + str(expected_target))
+        print()
 
 
 def run():
@@ -137,14 +138,15 @@ def run():
         test_data = get_attributes_from_images(test_data_origin)
 
         # split data
-        # result = train_test_split(
-        #     np.concatenate((train_data, test_data)),
-        #     np.array(train_target_origin + test_target_origin),
-        #     test_size=0.2, random_state=0
-        # )
+        result = train_test_split(
+            np.concatenate((train_data, test_data)),
+            np.array(train_target_origin + test_target_origin),
+            test_size=0.2, random_state=0
+        )
 
         # get trained model
-        model = get_clf_model('linear', train_data, train_target_origin, 1, 'auto')
+        model = get_clf_model('linear', result[0], result[2], 1, 'auto')
         joblib.dump(model, model_path)
+        print(model.score(result[1], result[3]))
 
     start_validation(model)
