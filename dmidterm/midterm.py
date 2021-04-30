@@ -40,10 +40,7 @@ def get_data(from_: str, hand_type: str) -> list:
 
 
 def get_single_validation_img(hand_type: str):
-    whole_path = path_prefix + 'validation/'
-    names = list(filter(lambda x: hand_type in x, [f for f in os.listdir(whole_path)]))
-    c = random.choice([cv2.imread(whole_path + name) for name in names])
-    return resize_img(convert_to_gray([c])[0])
+    return random.choice(get_data('test', hand_type))
 
 
 def convert_to_gray(images: list) -> list:
@@ -92,23 +89,47 @@ def get_attributes_sift(images: list):
     return im_features
 
 
+def judge_game_result(we: str, he: str) -> str:
+    if we == he:
+        return '🟡 Tie (￣ε￣)~♪'
+    all_types = ['paper', 'rock', 'scissors']
+    we, he = all_types.index(we), all_types.index(he)
+    gap = (he - we + 3) % 3
+    return '🟢 Win (ﾉ>ω<)ﾉ' if gap - 1 == 0 else '🔴 Lose (≧Д≦)'
+
+
 def start_validation(model):
     while True:
         try:
-            chosen_hand_type = input('please tell me what is your hand (paper|rock|scissors)?')
+            player_chosen_hand_type = input('please tell me what is your hand (paper=5|rock=0|scissors=2): ')
+            if player_chosen_hand_type.isdigit() and player_chosen_hand_type in ('5', '2', '0'):
+                real_meaning_dict = {'5': 'paper', '0': 'rock', '2': 'scissors'}
+                player_chosen_hand_type = real_meaning_dict[player_chosen_hand_type]
         except EOFError:
             break
         except KeyboardInterrupt:
             break
-        
-        if chosen_hand_type not in ['paper', 'rock', 'scissors']:
+
+        if player_chosen_hand_type not in ['paper', 'rock', 'scissors']:
             print('please provide a correct hand type!\n')
             continue
 
-        random_hand_img = get_single_validation_img(chosen_hand_type)
-        img_data = get_attributes_hog([random_hand_img])[0]
-        expected_target = model.predict([img_data])
-        print('The expected result is: ' + str(expected_target))
+        player_random_hand_img = get_single_validation_img(player_chosen_hand_type)
+        player_img_data = get_attributes_hog([player_random_hand_img])[0]
+        expected_player_img_target = model.predict([player_img_data])
+
+        print('player choose', player_chosen_hand_type)
+
+        npc_chosen_hand_type = random.choice(['paper', 'rock', 'scissors'])
+        npc_random_hand_img = get_single_validation_img(npc_chosen_hand_type)
+        npc_img_data = get_attributes_hog([npc_random_hand_img])[0]
+        expected_npc_img_target = model.predict([npc_img_data])
+
+        print('npc    choose', npc_chosen_hand_type)
+
+        game_result = judge_game_result(expected_player_img_target, expected_npc_img_target)
+
+        print('The expected result is:', game_result)
         print()
 
 
