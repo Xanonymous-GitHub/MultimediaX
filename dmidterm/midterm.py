@@ -148,17 +148,12 @@ def run():
         test_target_origin = test_paper_target + test_rock_target + test_scissors_target
 
         # SIFT
-<<<<<<< HEAD
         # train_data = get_attributes_sift(train_data_origin)
         # test_data = get_attributes_sift(test_data_origin)
 
         # HOG
         train_data = get_attributes_hog(train_data_origin)
         test_data = get_attributes_hog(test_data_origin)
-=======
-        train_data = get_attributes_from_images(train_data_origin)
-        test_data = get_attributes_from_images(test_data_origin)
->>>>>>> e4e81ffd26815af6835ac3ef03072344a392a1fa
 
         # split data
         result = train_test_split(
