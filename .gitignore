@@ -251,4 +251,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+<<<<<<< HEAD
 *.pkl
+=======
+.pkl
+>>>>>>> e4e81ffd26815af6835ac3ef03072344a392a1fa
