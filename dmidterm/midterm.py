@@ -1,5 +1,4 @@
 import time
-
 import numpy as np
 import cv2
 from sklearn import svm
@@ -8,7 +7,6 @@ import random
 import joblib
 from sklearn.model_selection import train_test_split
 from skimage.feature import hog
-from scipy.cluster.vq import *
 
 path_prefix = './dmidterm/assets/'
 model_path = './dmidterm/model.pkl'
@@ -66,31 +64,6 @@ def get_attributes_hog(images: list):
     return hogs
 
 
-def get_attributes_sift(images: list):
-    sift = cv2.SIFT_create()
-    data_size = len(images)
-    des_list = []
-    for data in images:
-        kpts = sift.detect(data)
-        _, des = sift.compute(data, kpts)
-        des_list.append(des)
-
-    descriptors = des_list[0]
-    for descriptor in des_list[1:]:
-        descriptors = np.vstack((descriptors, descriptor))
-
-    k_means = 20
-    voc, variance = kmeans(descriptors, k_means, 1)
-
-    im_features = np.zeros((data_size, k_means), 'float32')
-    for i in range(data_size):
-        words, distance = vq(des_list[i], voc)
-        for word in words:
-            im_features[i][word] += 1
-
-    return im_features
-
-
 def judge_game_result(we: str, he: str) -> str:
     if we == he:
         return '🟡 Tie (￣ε￣)~♪'
@@ -110,39 +83,49 @@ def add_hand_emoji(hand: str) -> str:
 
 
 def start_validation(model):
-    while True:
-        try:
-            player_chosen_hand_type = input('please tell me what is your hand (paper=5|rock=0|scissors=2): ')
-            if player_chosen_hand_type.isdigit() and player_chosen_hand_type in ('5', '2', '0'):
-                real_meaning_dict = {'5': 'paper', '0': 'rock', '2': 'scissors'}
-                player_chosen_hand_type = real_meaning_dict[player_chosen_hand_type]
-        except EOFError:
-            break
-        except KeyboardInterrupt:
-            break
-
-        if player_chosen_hand_type not in ['paper', 'rock', 'scissors']:
-            print('please provide a correct hand type!\n')
-            continue
-
-        player_random_hand_img = get_single_validation_img(player_chosen_hand_type)
-        player_img_data = get_attributes_hog([player_random_hand_img])[0]
-        expected_player_img_target = model.predict([player_img_data])
-
-        print('player choose', add_hand_emoji(player_chosen_hand_type))
-
-        random.seed(time.time())
-        npc_chosen_hand_type = random.choice(['paper', 'rock', 'scissors'])
-        npc_random_hand_img = get_single_validation_img(npc_chosen_hand_type)
-        npc_img_data = get_attributes_hog([npc_random_hand_img])[0]
-        expected_npc_img_target = model.predict([npc_img_data])
-
-        print('npc    choose', add_hand_emoji(npc_chosen_hand_type))
-
-        game_result = judge_game_result(expected_player_img_target, expected_npc_img_target)
-
-        print('The expected result is:', game_result)
+    try:
+        player_chosen_hand_type = input('please tell me what is your hand (paper=5|rock=0|scissors=2): ')
+        if player_chosen_hand_type.isdigit() and player_chosen_hand_type in ('5', '2', '0'):
+            real_meaning_dict = {'5': 'paper', '0': 'rock', '2': 'scissors'}
+            player_chosen_hand_type = real_meaning_dict[player_chosen_hand_type]
+    except KeyboardInterrupt:
         print()
+        return
+
+    if player_chosen_hand_type not in ['paper', 'rock', 'scissors']:
+        print('please provide a correct hand type!\n')
+        return
+
+    player_random_hand_img = get_single_validation_img(player_chosen_hand_type)
+    player_img_data = get_attributes_hog([player_random_hand_img])[0]
+    expected_player_img_target = model.predict([player_img_data])
+
+    print('player choose', add_hand_emoji(player_chosen_hand_type))
+    player_chosen_hand_type_window_name = 'player chosen ({})'.format(player_chosen_hand_type)
+    cv2.imshow(player_chosen_hand_type_window_name, player_random_hand_img)
+    cv2.moveWindow(player_chosen_hand_type_window_name, 0, 0)
+
+    random.seed(time.time())
+    npc_chosen_hand_type = random.choice(['paper', 'rock', 'scissors'])
+    npc_random_hand_img = get_single_validation_img(npc_chosen_hand_type)
+    npc_img_data = get_attributes_hog([npc_random_hand_img])[0]
+    expected_npc_img_target = model.predict([npc_img_data])
+
+    print('npc    choose', add_hand_emoji(npc_chosen_hand_type))
+    npc_chosen_hand_type_window_name = 'npc chosen ({})'.format(npc_chosen_hand_type)
+    cv2.imshow(npc_chosen_hand_type_window_name, npc_random_hand_img)
+    cv2.moveWindow(npc_chosen_hand_type_window_name, 600, 0)
+
+    game_result = judge_game_result(expected_player_img_target, expected_npc_img_target)
+    game_result_img = cv2.resize(cv2.imread(path_prefix + 'judge/{}.png'.format(game_result[0])), (300, 300))
+    cv2.imshow('result', np.concatenate((player_random_hand_img, game_result_img, npc_random_hand_img), axis=1))
+    cv2.moveWindow('result', 0, 350)
+
+    print('The expected result is:', game_result)
+    print()
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def resize_img(img):
@@ -186,10 +169,6 @@ def run():
 
         # combine test target
         test_target_origin = test_paper_target + test_rock_target + test_scissors_target
-
-        # SIFT
-        # train_data = get_attributes_sift(train_data_origin)
-        # test_data = get_attributes_sift(test_data_origin)
 
         # HOG
         train_data = get_attributes_hog(train_data_origin)
