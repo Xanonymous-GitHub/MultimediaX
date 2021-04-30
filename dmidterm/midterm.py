@@ -43,7 +43,7 @@ def get_single_validation_img(hand_type: str):
     whole_path = path_prefix + 'validation/'
     names = list(filter(lambda x: hand_type in x, [f for f in os.listdir(whole_path)]))
     c = random.choice([cv2.imread(whole_path + name) for name in names])
-    return convert_to_gray([c])[0]
+    return resize_img(convert_to_gray([c])[0])
 
 
 def convert_to_gray(images: list) -> list:
@@ -60,7 +60,7 @@ def get_attributes_hog(images: list):
         fd = hog(
             img,
             orientations=8,
-            pixels_per_cell=(9, 9),
+            pixels_per_cell=(3, 3),
             cells_per_block=(1, 1),
         )
         hogs.append(fd)
@@ -107,6 +107,10 @@ def start_validation(model):
         expected_target = model.predict([img_data])
         print('The expected result is: ' + str(expected_target))
         print()
+
+
+def resize_img(img):
+    return cv2.resize(img, (300, 300))
 
 
 def run():
