@@ -98,6 +98,9 @@ def start_validation(model):
             chosen_hand_type = input('please tell me what is your hand (paper|rock|scissors)?')
         except EOFError:
             break
+        except KeyboardInterrupt:
+            break
+        
         if chosen_hand_type not in ['paper', 'rock', 'scissors']:
             print('please provide a correct hand type!\n')
             continue
