@@ -5,6 +5,7 @@ import os
 import random
 import joblib
 from sklearn.model_selection import train_test_split
+from skimage.feature import hog
 from scipy.cluster.vq import *
 
 path_prefix = './dmidterm/assets/'
@@ -53,7 +54,20 @@ def create_target_list(amount: int, content: str) -> list:
     return [content for _ in range(amount)]
 
 
-def get_attributes_from_images(images: list):
+def get_attributes_hog(images: list):
+    hogs = []
+    for img in images:
+        fd = hog(
+            img,
+            orientations=8,
+            pixels_per_cell=(9, 9),
+            cells_per_block=(1, 1),
+        )
+        hogs.append(fd)
+    return hogs
+
+
+def get_attributes_sift(images: list):
     sift = cv2.SIFT_create()
     data_size = len(images)
     des_list = []
@@ -89,7 +103,7 @@ def start_validation(model):
             continue
 
         random_hand_img = get_single_validation_img(chosen_hand_type)
-        img_data = get_attributes_from_images([random_hand_img])[0]
+        img_data = get_attributes_hog([random_hand_img])[0]
         expected_target = model.predict([img_data])
         print('The expected result is: ' + str(expected_target))
         print()
@@ -134,8 +148,12 @@ def run():
         test_target_origin = test_paper_target + test_rock_target + test_scissors_target
 
         # SIFT
-        train_data = get_attributes_from_images(train_data_origin)
-        test_data = get_attributes_from_images(test_data_origin)
+        # train_data = get_attributes_sift(train_data_origin)
+        # test_data = get_attributes_sift(test_data_origin)
+
+        # HOG
+        train_data = get_attributes_hog(train_data_origin)
+        test_data = get_attributes_hog(test_data_origin)
 
         # split data
         result = train_test_split(
