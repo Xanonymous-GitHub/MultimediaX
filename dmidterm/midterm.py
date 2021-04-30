@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import cv2
 from sklearn import svm
@@ -98,6 +100,15 @@ def judge_game_result(we: str, he: str) -> str:
     return '🟢 Win (ﾉ>ω<)ﾉ' if gap - 1 == 0 else '🔴 Lose (≧Д≦)'
 
 
+def add_hand_emoji(hand: str) -> str:
+    if hand == 'paper':
+        return hand + ' 🖐'
+    if hand == 'rock':
+        return hand + ' ✊'
+    if hand == 'scissors':
+        return hand + ' ✌️'
+
+
 def start_validation(model):
     while True:
         try:
@@ -118,14 +129,15 @@ def start_validation(model):
         player_img_data = get_attributes_hog([player_random_hand_img])[0]
         expected_player_img_target = model.predict([player_img_data])
 
-        print('player choose', player_chosen_hand_type)
+        print('player choose', add_hand_emoji(player_chosen_hand_type))
 
+        random.seed(time.time())
         npc_chosen_hand_type = random.choice(['paper', 'rock', 'scissors'])
         npc_random_hand_img = get_single_validation_img(npc_chosen_hand_type)
         npc_img_data = get_attributes_hog([npc_random_hand_img])[0]
         expected_npc_img_target = model.predict([npc_img_data])
 
-        print('npc    choose', npc_chosen_hand_type)
+        print('npc    choose', add_hand_emoji(npc_chosen_hand_type))
 
         game_result = judge_game_result(expected_player_img_target, expected_npc_img_target)
 
